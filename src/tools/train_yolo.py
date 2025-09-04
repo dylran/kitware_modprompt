@@ -1,7 +1,14 @@
 # RemovePoliceCVPR
+import pdb
+
+import os, sys
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if ROOT not in sys.path:
+    sys.path.insert(0, ROOT)
+
 import argparse
 import logging
-import os
+# import os
 import os.path as osp
 
 from mmengine.config import Config, DictAction
@@ -72,7 +79,7 @@ def parse_args():
 
 
 def main():
-
+    # pdb.set_trace()
     args = parse_args()
     seed_everything(args.seed)
     # load config
@@ -82,7 +89,7 @@ def main():
     
     # Link Removeds://mmengine.RemoveLinkCVPRio/en/stable/api/generated/mmengine.visualization.WandbVisBackend.html#mmengine.visualization.WandbVisBackend
     # cfg.visualizer = dict(type='Visualizer', vis_backends=[dict(type='WandbVisBackend')])
-    
+
     dataset_name = args.config.split('/')[-2] # from the configs/dataset/*.py
     
     cfg.launcher = args.launcher
@@ -176,14 +183,14 @@ def main():
             param.requires_grad = False
             if "img_prompt" in name:
                 param.requires_grad = True
-
+    
     ## task residuals only
     if "task_residuals" in args.config:
         for name, param in runner.model.named_parameters():
             param.requires_grad = False
             if "text_feature_residuals" in name:
                 param.requires_grad = True
-                
+
     ## txt prompt tuning and img prompt
     if "prompt_tuning" in args.config and 'img_prompt' in cfg.model.keys():
         for name, param in runner.model.named_parameters():
@@ -192,7 +199,7 @@ def main():
                 param.requires_grad = True
             if "img_prompt" in name:
                 param.requires_grad = True
-                
+
     ## task residuals and img prompt
     if "task_residuals" in args.config and 'img_prompt' in cfg.model.keys():
         for name, param in runner.model.named_parameters():

@@ -1,6 +1,7 @@
 _base_ = ['../../../third_party/mmyolo/configs/_base_/default_runtime.py',
           '../../../third_party/mmyolo/configs/_base_/det_p5_tta.py']
 
+custom_imports = dict(imports=['mmcv.transforms'], allow_failed_imports=False)
 
 # ========================Frequently modified parameters======================
 # -----data related-----
@@ -175,24 +176,34 @@ pre_transform = [
     dict(type='LoadAnnotations', with_bbox=True)
 ]
 
+# last_transform = [
+#     dict(
+#         type='mmdet.Albu',
+#         transforms=albu_train_transforms,
+#         bbox_params=dict(
+#             type='BboxParams',
+#             format='pascal_voc',
+#             label_fields=['gt_bboxes_labels', 'gt_ignore_flags']),
+#         keymap={
+#             'img': 'image',
+#             'gt_bboxes': 'bboxes'
+#         }),
+#     dict(type='YOLOv5HSVRandomAug'),
+#     dict(type='mmdet.RandomFlip', prob=0.5),
+#     dict(
+#         type='mmdet.PackDetInputs',
+#         meta_keys=('img_id', 'img_path', 'ori_shape', 'img_shape', 'flip',
+#                    'flip_direction'))
+# ]
+
 last_transform = [
-    dict(
-        type='mmdet.Albu',
-        transforms=albu_train_transforms,
-        bbox_params=dict(
-            type='BboxParams',
-            format='pascal_voc',
-            label_fields=['gt_bboxes_labels', 'gt_ignore_flags']),
-        keymap={
-            'img': 'image',
-            'gt_bboxes': 'bboxes'
-        }),
     dict(type='YOLOv5HSVRandomAug'),
     dict(type='mmdet.RandomFlip', prob=0.5),
     dict(
         type='mmdet.PackDetInputs',
         meta_keys=('img_id', 'img_path', 'ori_shape', 'img_shape', 'flip',
-                   'flip_direction'))
+                   'flip_direction')
+    ),
 ]
 
 train_pipeline = [

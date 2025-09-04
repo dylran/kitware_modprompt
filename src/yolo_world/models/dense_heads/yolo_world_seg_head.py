@@ -416,7 +416,7 @@ class YOLOWorldSegHead(YOLOv5InsHead):
         # (bs, n, 4 * reg_max)
         flatten_pred_dists = [
             bbox_pred_remove_links
-            for bbox_pred_remove_links
+            for bbox_pred_remove_links in bbox_dist_preds
         ]
 
         flatten_pred_coeffs = [

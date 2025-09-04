@@ -489,8 +489,8 @@ class YOLOWorldHead(YOLOv8Head):
         ]
         # (bs, n, 4 * reg_max)
         flatten_pred_dists = [
-            bbox_pred_remove_links
-            for bbox_pred_remove_links
+            bbox_pred_remove_links for bbox_pred_remove_links
+            in bbox_dist_preds
         ]
 
         flatten_dist_preds = torch.cat(flatten_pred_dists, dim=1)
