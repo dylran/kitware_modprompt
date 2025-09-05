@@ -10,6 +10,7 @@ import argparse
 import logging
 # import os
 import os.path as osp
+import re, glob  # <-- added
 
 from mmengine.config import Config, DictAction
 from mmengine.logging import print_log
@@ -75,6 +76,9 @@ def parse_args():
     if 'LOCAL_RANK' not in os.environ:
         os.environ['LOCAL_RANK'] = str(args.local_rank)
 
+    # parser.add_argument('--val-only', action='store_true',
+    #                 help='Run validation once without training')
+
     return args
 
 
@@ -128,7 +132,7 @@ def main():
         else:
             assert optim_wrapper == 'OptimWrapper', (
                 '`--amp` is only supported when the optimizer wrapper type is '
-                f'`OptimWrapper` but got {optim_wrapper}.')
+                f'`OptimWrapper` but got {optimWrapper}.')
             cfg.optim_wrapper.type = 'AmpOptimWrapper'
             cfg.optim_wrapper.loss_scale = 'dynamic'
 
@@ -215,6 +219,54 @@ def main():
 
     # start training
     runner.train()
+
+    # ===================== Run TWO evaluations: BEST and LAST =====================
+    try:
+        # Only trigger if the model actually has parameters containing "img_prompt"
+        has_img_prompt = any(re.search(r'img_prompt', n) for n, _ in runner.model.named_parameters())
+        if not has_img_prompt:
+            print_log('Skip auto-eval: model has no parameters matching "img_prompt".',
+                      logger='current', level=logging.WARNING)
+            return
+
+        def pick_best_and_last(work_dir: str):
+            best = None
+            last = None
+            # pick BEST by filename containing 'best'
+            best_cands = sorted(glob.glob(osp.join(work_dir, '*best*.pth')))
+            if best_cands:
+                best = best_cands[-1]
+            # pick LAST by highest epoch_*.pth
+            epoch_cands = sorted(glob.glob(osp.join(work_dir, 'epoch_*.pth')))
+            if epoch_cands:
+                last = epoch_cands[-1]
+            return best, last
+
+        best_ckpt, last_ckpt = pick_best_and_last(cfg.work_dir)
+
+        # Helper to run one test pass
+        def run_test_with_ckpt(title: str, ckpt_path: str):
+            print_log(f'[{title}] Evaluating checkpoint: {ckpt_path}', logger='current')
+            test_cfg = cfg.copy()
+            test_cfg.resume = False
+            test_cfg.load_from = ckpt_path
+            test_runner = Runner.from_cfg(test_cfg)
+            test_runner.test()
+
+        if best_ckpt is not None:
+            run_test_with_ckpt('BEST', best_ckpt)
+        else:
+            print_log('No *best*.pth found. (Enable save_best in your checkpoint hook to create one.)',
+                      logger='current', level=logging.WARNING)
+
+        if last_ckpt is not None:
+            run_test_with_ckpt('LAST', last_ckpt)
+        else:
+            print_log('No epoch_*.pth checkpoints found to evaluate LAST.',
+                      logger='current', level=logging.WARNING)
+
+    except Exception as e:
+        print_log(f'Auto-evals failed: {e}', logger='current', level=logging.ERROR)
 
 
 if __name__ == '__main__':
