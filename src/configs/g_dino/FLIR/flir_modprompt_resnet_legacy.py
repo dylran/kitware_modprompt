@@ -9,9 +9,11 @@ custom_imports = dict(
     allow_failed_imports=False
 )
 
+import os
+root_dir = os.getcwd()
 # use the MMDetection-native Grounding-DINO Swin-T checkpoint (whole model)
-load_from = '/data/ModPrompt/src/pretrained_models/grounding_dino_swin-t_pretrain_obj365_goldg_20231122_132602-4ea751ce.pth'
-load_from = '/data/ModPrompt/src/pretrained_models/grounding_dino_swin-t_finetune_16xb2_1x_coco_20230921_152544-5f234b20.pth'
+load_from = f'{root_dir}/pretrained_models/grounding_dino_swin-t_pretrain_obj365_goldg_20231122_132602-4ea751ce.pth'
+load_from = f'{root_dir}/pretrained_models/grounding_dino_swin-t_finetune_16xb2_1x_coco_20230921_152544-5f234b20.pth'
 resume = False
 
 lang_model_name = 'bert-base-uncased'
