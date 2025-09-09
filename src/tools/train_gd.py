@@ -1,5 +1,7 @@
 # RemovePoliceCVPR
 import argparse
+import sys
+from pathlib import Path
 import glob
 import os
 import os.path as osp
@@ -11,6 +13,11 @@ from mmengine.runner import Runner
 from mmengine.logging import print_log
 
 from mmdet.utils import setup_cache_size_limit_of_dynamo
+
+# Ensure project root is on sys.path for local package imports
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 # Make sure custom modules (GroundinDINO, etc.) are registered
 from ground_dino.utils import register_all_modules

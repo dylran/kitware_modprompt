@@ -212,7 +212,8 @@ def main():
                 param.requires_grad = True
             if "img_prompt" in name:
                 param.requires_grad = True
-                
+
+    import pdb; pdb.set_trace()           
 
     if(args.debug):
         exit()

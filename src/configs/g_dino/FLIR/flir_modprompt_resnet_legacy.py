@@ -12,7 +12,7 @@ custom_imports = dict(
 import os
 root_dir = os.getcwd()
 # use the MMDetection-native Grounding-DINO Swin-T checkpoint (whole model)
-load_from = f'{root_dir}/pretrained_models/grounding_dino_swin-t_pretrain_obj365_goldg_20231122_132602-4ea751ce.pth'
+# load_from = f'{root_dir}/pretrained_models/grounding_dino_swin-t_pretrain_obj365_goldg_20231122_132602-4ea751ce.pth'
 load_from = f'{root_dir}/pretrained_models/grounding_dino_swin-t_finetune_16xb2_1x_coco_20230921_152544-5f234b20.pth'
 resume = False
 
@@ -31,9 +31,9 @@ model = dict(
     as_two_stage=True,
     data_preprocessor=dict(
         type='DetDataPreprocessor',
-        #mean=[123.675, 116.28, 103.53],
-        #std=[58.395, 57.12, 57.375],
-        bgr_to_rgb=False,
+        mean=[123.675, 116.28, 103.53],
+        std=[58.395, 57.12, 57.375],
+        bgr_to_rgb=True,
         pad_mask=False,
     ),
     language_model=dict(
@@ -150,6 +150,7 @@ model = dict(
 train_pipeline = [
     dict(type='LoadImageFromFile', backend_args=_base_.backend_args),
     dict(type='LoadAnnotations', with_bbox=True),
+    dict(type='FixScaleResize', scale=(640, 512), keep_ratio=True),
     dict(type='RandomFlip', prob=0.5),
     dict(
         type='PackDetInputs',
@@ -193,7 +194,7 @@ test_evaluator = val_evaluator
 optim_wrapper = dict(
     _delete_=True,
     type='OptimWrapper',
-    optimizer=dict(type='AdamW', lr=0.0005, weight_decay=0.0001),
+    optimizer=dict(type='AdamW', lr=0.0002, weight_decay=0.0001),
     clip_grad=dict(max_norm=0.1, norm_type=2),
     paramwise_cfg=dict(custom_keys={
         'absolute_pos_embed': dict(decay_mult=0.),

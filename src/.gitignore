@@ -2,3 +2,15 @@ data/*
 new_data
 pretrained_models
 output*
+*.pyc
+prediction_visualizations
+tmp_peekwork_dirs/
+flir_tmp_debug/
+dataloader_visualizations/
+__pycache__/
+*.pth
+*.pt
+*.ckpt
+*.log
+*.json
+*.pyc

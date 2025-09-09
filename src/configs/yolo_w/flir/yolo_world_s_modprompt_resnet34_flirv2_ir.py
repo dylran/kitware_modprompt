@@ -13,6 +13,14 @@ metainfo = dict(classes=[
 ])
 CLASS_TEXT_PATH = 'data/texts/flir_v2_16_classes.json'
 
+from pathlib import Path
+import json
+
+CLASS_TEXTS = json.loads(Path(CLASS_TEXT_PATH).read_text())
+# accept ["person", ...] or [["person"], ...]
+if len(CLASS_TEXTS) > 0 and isinstance(CLASS_TEXTS[0], str):
+    CLASS_TEXTS = [[c] for c in CLASS_TEXTS]
+
 # ====================== Hyper-params ======================
 max_epochs = 80
 close_mosaic_epochs = 10
@@ -115,19 +123,22 @@ train_pipeline = [
 ]
 train_pipeline_stage2 = [*_base_.train_pipeline_stage2[:-1], *text_transform]
 
-# Constrain val/test to exactly 16 texts (prevents label-index mismatch)
 test_pipeline = [
-    *_base_.test_pipeline[:-1],
+    # Put this FIRST so texts exist before any other text-aware step.
     dict(
         type='RandomLoadText',
+        class_texts=CLASS_TEXTS,           # <-- pass data, not a file handle
         num_neg_samples=(0, 0),
-        max_num_samples=num_training_classes,  # 16
+        max_num_samples=num_training_classes,
         padding_to_max=True,
         padding_value=''
     ),
-    dict(type='mmdet.PackDetInputs',
-         meta_keys=('img_id', 'img_path', 'ori_shape', 'img_shape',
-                    'scale_factor', 'pad_param', 'texts'))
+    *_base_.test_pipeline[:-1],
+    dict(
+        type='mmdet.PackDetInputs',
+        meta_keys=('img_id','img_path','ori_shape','img_shape',
+                   'scale_factor','pad_param','texts')
+    ),
 ]
 
 # ====================== Datasets ======================

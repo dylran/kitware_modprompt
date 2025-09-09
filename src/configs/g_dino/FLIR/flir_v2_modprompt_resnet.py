@@ -1,4 +1,5 @@
-# g_dino_flir_coco_splits.py
+# g_dino_flir_v2_ir.py
+# Grounding-DINO + ModPrompt for FLIR_V2 (IR), COCO-style splits
 
 _base_ = [
     '../_base_/coco_detection.py',
@@ -6,33 +7,40 @@ _base_ = [
     '../_base_/default_runtime.py'
 ]
 
-# --- Make sure your custom Grounding-DINO is registered ---
+# --- Ensure Grounding-DINO is registered ---
 custom_imports = dict(
     imports=['ground_dino.models'],  # this package's __init__ imports detectors/*
     allow_failed_imports=False
 )
 
 # --- Checkpoint / run control ---
+# You can switch to pretrain-on-Objects365 if you prefer
 # load_from = '/data/ModPrompt/src/pretrained_models/grounding_dino_swin-t_pretrain_obj365_goldg_20231122_132602-4ea751ce.pth'
 load_from = '/data/ModPrompt/src/pretrained_models/grounding_dino_swin-t_finetune_16xb2_1x_coco_20230921_152544-5f234b20.pth'
 resume = False
 lang_model_name = 'bert-base-uncased'
 
 # ====================== Split selectors (COCO-style JSON) ======================
-DATASET_NAME = 'flir_aligned'   # e.g. 'flir_aligned'
-MODALITY = 'ir'                 # 'ir' or 'vis'
+DATASET_NAME = 'flir_v2'
+MODALITY = 'ir'
 
 SPLIT_ROOT = f'/data/ModPrompt/src/new_data/splits/{DATASET_NAME}/{MODALITY}'
 TRAIN_JSON = f'{SPLIT_ROOT}/train.kwcoco.json'
 VAL_JSON   = f'{SPLIT_ROOT}/val.kwcoco.json'
 TEST_JSON  = f'{SPLIT_ROOT}/test.kwcoco.json'
 
-# Your images live here, and "file_name" in the JSON is a basename.
-DATA_ROOT_FOR_COCO = '/data/ModPrompt/src/data/FLIR_aligned'
-DATA_PREFIX_IMG = 'JPEGImages'
+# Your images live here; JSON "file_name" is a BASENAME (e.g., img.jpg)
+DATA_ROOT_FOR_COCO = '/data/ModPrompt/src/data/FLIR_V2/FLIR_ADAS_v2'
+TRAIN_IMG_PREFIX = 'images_thermal_train/data'
+VAL_IMG_PREFIX   = 'images_thermal_val/data'
+TEST_IMG_PREFIX  = 'video_thermal_test/data'
 
-# ====================== Classes ======================
-class_name = ('person', 'car', 'bicycle', 'dog')
+# ====================== Classes (order matters) ======================
+class_name = (
+    'person', 'bike', 'car', 'motor', 'bus', 'train', 'truck',
+    'light', 'hydrant', 'sign', 'dog', 'deer', 'skateboard',
+    'stroller', 'scooter', 'other vehicle'
+)
 num_classes = len(class_name)
 metainfo = dict(classes=class_name)
 
@@ -152,11 +160,11 @@ model = dict(
     ),
     test_cfg=dict(max_per_img=300),
 
-    # ModPrompt bits (kept as in your working setup)
+    # ----- ModPrompt -----
     fft=0, hft=1, img_prompt='modprompt',
     modprompt_backbone='resnet34',
     modprompt_encoder_depth=5,
-    modprompt_in_channels=3,
+    modprompt_in_channels=3,      # If your JPGs are single-channel, set this to 1
     modprompt_out_channels=3,
     modprompt_encoder_weights='imagenet',
     modprompt_alpha=1.0,
@@ -197,7 +205,7 @@ flir_train_dataset = dict(
     metainfo=metainfo,
     data_root=DATA_ROOT_FOR_COCO,
     ann_file=TRAIN_JSON,
-    data_prefix=dict(img=DATA_PREFIX_IMG),
+    data_prefix=dict(img=TRAIN_IMG_PREFIX),
     filter_cfg=dict(filter_empty_gt=False, min_size=32),
     pipeline=train_pipeline,
     return_classes=True
@@ -210,7 +218,7 @@ flir_val_dataset = dict(
     data_root=DATA_ROOT_FOR_COCO,
     test_mode=True,
     ann_file=VAL_JSON,
-    data_prefix=dict(img=DATA_PREFIX_IMG),
+    data_prefix=dict(img=VAL_IMG_PREFIX),
     pipeline=test_pipeline,
     return_classes=True
 )
@@ -222,7 +230,7 @@ flir_test_dataset = dict(
     data_root=DATA_ROOT_FOR_COCO,
     test_mode=True,
     ann_file=TEST_JSON,
-    data_prefix=dict(img=DATA_PREFIX_IMG),
+    data_prefix=dict(img=TEST_IMG_PREFIX),
     pipeline=test_pipeline,
     return_classes=True
 )
@@ -272,7 +280,7 @@ optim_wrapper = dict(
     )
 )
 
-max_epochs = 60 # use 1 for a quick test
+max_epochs = 60  # set to 1 for a quick smoke test
 default_hooks = dict(
     checkpoint=dict(interval=5, max_keep_ckpts=5, save_best='auto'),
     logger=dict(type='LoggerHook', interval=5)
@@ -290,7 +298,7 @@ param_scheduler = [
     )
 ]
 
-# NOTE: auto LR scaling
+# Auto LR scaling assumes base batch size across GPUs
 auto_scale_lr = dict(base_batch_size=32)
 
 # (optional flags carried through)

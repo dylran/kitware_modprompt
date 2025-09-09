@@ -33,6 +33,10 @@ rm -f output_gdino_2/last_checkpoint 2>/dev/null
 #   --work-dir output_gdino/flir_aligned_coco_pretrain \
 
 # launch single node with original config
-CUDA_VISIBLE_DEVICES=0 python -m tools.train_gd \
-  configs/g_dino/FLIR/flir_modprompt_resnet_legacy.py \
-  --work-dir output_gdino/flir_aligned_legacy \
+# CUDA_VISIBLE_DEVICES=0 python -m tools.train_gd \
+#   configs/g_dino/FLIR/flir_modprompt_resnet_legacy.py \
+#   --work-dir output_gdino/flir_aligned_legacy \
+
+CUDA_VISIBLE_DEVICES=1 python tools/train_gd.py \
+  configs/g_dino/FLIR/flir_modprompt_resnet.py \
+  --amp --work-dir output_gdino/flir_gd_amp
