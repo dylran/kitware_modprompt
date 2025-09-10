@@ -13,19 +13,19 @@ custom_imports = dict(
     allow_failed_imports=False
 )
 
+import os
+root = os.getcwd()
+
 # --- Checkpoint / run control ---
 # You can switch to pretrain-on-Objects365 if you prefer
 # load_from = '/data/ModPrompt/src/pretrained_models/grounding_dino_swin-t_pretrain_obj365_goldg_20231122_132602-4ea751ce.pth'
-load_from = '/data/ModPrompt/src/pretrained_models/grounding_dino_swin-t_finetune_16xb2_1x_coco_20230921_152544-5f234b20.pth'
+load_from = f'{root}/pretrained_models/grounding_dino_swin-t_finetune_16xb2_1x_coco_20230921_152544-5f234b20.pth'
 resume = False
 lang_model_name = 'bert-base-uncased'
 
 # ====================== Split selectors (COCO-style JSON) ======================
 DATASET_NAME = 'flir_v2'
 MODALITY = 'ir'
-
-import os
-root = os.getcwd()
 
 SPLIT_ROOT = f'{root}/new_data/splits/{DATASET_NAME}/{MODALITY}'
 TRAIN_JSON = f'{SPLIT_ROOT}/train.kwcoco.json'

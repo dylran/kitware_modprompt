@@ -50,17 +50,17 @@
 
 # make project importable
 export PYTHONPATH=/data/ModPrompt/src:$PYTHONPATH
-export CUDA_VISIBLE_DEVICES=0,1   # pick your GPUs
+export CUDA_VISIBLE_DEVICES=0,1,2,3   # pick your GPUs
 
 # avoid resuming (so load_from is used)
 rm -f output_gdino_2/last_checkpoint 2>/dev/null
 
 
-# CUDA_VISIBLE_DEVICES=1 python tools/train_gd.py \
+# CUDA_VISIBLE_DEVICES=0 python tools/train_gd.py \
 #   configs/g_dino/FLIR/flir_v2_modprompt_resnet.py \
 #   --amp --work-dir output_gdino/flir_gd_amp_flirv2
 
-torchrun --nproc_per_node=2 tools/train_gd.py \
+torchrun --nproc_per_node=4 tools/train_gd.py \
   configs/g_dino/FLIR/flir_v2_modprompt_resnet.py \
   --work-dir output_gdino/flir_v2_ir_ddp \
   --amp \
