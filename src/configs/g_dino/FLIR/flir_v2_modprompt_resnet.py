@@ -24,13 +24,16 @@ lang_model_name = 'bert-base-uncased'
 DATASET_NAME = 'flir_v2'
 MODALITY = 'ir'
 
-SPLIT_ROOT = f'/data/ModPrompt/src/new_data/splits/{DATASET_NAME}/{MODALITY}'
+import os
+root = os.getcwd()
+
+SPLIT_ROOT = f'{root}/new_data/splits/{DATASET_NAME}/{MODALITY}'
 TRAIN_JSON = f'{SPLIT_ROOT}/train.kwcoco.json'
 VAL_JSON   = f'{SPLIT_ROOT}/val.kwcoco.json'
 TEST_JSON  = f'{SPLIT_ROOT}/test.kwcoco.json'
 
 # Your images live here; JSON "file_name" is a BASENAME (e.g., img.jpg)
-DATA_ROOT_FOR_COCO = '/data/ModPrompt/src/data/FLIR_V2/FLIR_ADAS_v2'
+DATA_ROOT_FOR_COCO = f'{root}/data/FLIR_V2/FLIR_ADAS_v2'
 TRAIN_IMG_PREFIX = 'images_thermal_train/data'
 VAL_IMG_PREFIX   = 'images_thermal_val/data'
 TEST_IMG_PREFIX  = 'video_thermal_test/data'
