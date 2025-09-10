@@ -36,7 +36,7 @@ TEST_JSON  = f'{SPLIT_ROOT}/test.kwcoco.json'
 DATA_ROOT_FOR_COCO = f'{root}/data/FLIR_V2/FLIR_ADAS_v2'
 TRAIN_IMG_PREFIX = 'images_thermal_train/data'
 VAL_IMG_PREFIX   = 'images_thermal_val/data'
-TEST_IMG_PREFIX  = 'videos_thermal_test/data'
+TEST_IMG_PREFIX  = 'video_thermal_test/data'
 
 # ====================== Classes (order matters) ======================
 class_name = (
