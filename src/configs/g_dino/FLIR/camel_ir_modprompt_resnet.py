@@ -277,37 +277,41 @@ test_evaluator = dict(
 )
 
 # ====================== Optim / Sched / Hooks ======================
+# 4 GPUs * 8 / GPU = global batch 32. Target LR = 6e-4.
 optim_wrapper = dict(
     _delete_=True,
     type='OptimWrapper',
-    optimizer=dict(type='AdamW', lr=0.0002, weight_decay=0.0001),
+    optimizer=dict(type='AdamW', lr=6e-4, weight_decay=1e-4),
     clip_grad=dict(max_norm=0.1, norm_type=2),
+    # Swin backbone at 0.1x LR -> 6e-5 (standard for fine-tuning)
     paramwise_cfg=dict(
         custom_keys={
             'absolute_pos_embed': dict(decay_mult=0.0),
-            'backbone': dict(lr_mult=0.1)
+            'backbone': dict(lr_mult=0.1),
         }
-    )
+    ),
 )
 
 max_epochs = 60
 default_hooks = dict(
     checkpoint=dict(interval=5, max_keep_ckpts=5, save_best='auto'),
-    logger=dict(type='LoggerHook', interval=5)
+    logger=dict(type='LoggerHook', interval=5),
 )
 train_cfg = dict(max_epochs=max_epochs, val_interval=5)
 
+# Brief warmup then your MultiStep schedule
 param_scheduler = [
+    dict(  # ~1k iters warmup helps stability going from 2e-4 -> 6e-4
+        type='LinearLR', begin=0, end=1000, by_epoch=False, start_factor=1.0/3.0
+    ),
     dict(
         type='MultiStepLR',
-        begin=0,
-        end=max_epochs,
-        by_epoch=True,
-        milestones=[11],
-        gamma=0.1
-    )
+        begin=0, end=max_epochs, by_epoch=True,
+        milestones=[11], gamma=0.1
+    ),
 ]
 
+# Base batch size reference for auto scaling; 32 matches 4x8 so it's a no-op
 auto_scale_lr = dict(base_batch_size=32)
 
 # convenient flags
