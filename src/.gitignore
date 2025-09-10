@@ -4,7 +4,8 @@ pretrained_models
 output*
 *.pyc
 prediction_visualizations
-tmp_peekwork_dirs/
+tmp_peek/
+work_dirs/
 flir_tmp_debug/
 dataloader_visualizations/
 __pycache__/
